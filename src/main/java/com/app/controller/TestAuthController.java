@@ -10,21 +10,5 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("denyAll()")
 public class TestAuthController {
 
-    @GetMapping("/hello")
-    @PreAuthorize("permitAll()")
-    public String hello(){
-        return "hello world";
-    }
 
-    @GetMapping("/hello-secured")
-    @PreAuthorize("hasAuthority('READ')")
-    public String helloSecure(){
-        return "hello world secured";
-    }
-
-    @GetMapping("/hello-secured2")
-    @PreAuthorize("hasAuthority('CREATE')")
-    public String helloSecure2(){
-        return "hello world secured2";
-    }
 }
