@@ -18,6 +18,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
@@ -34,29 +35,38 @@ public class SecurityConfig {
 
 
 
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-//        return httpSecurity
-//                .csrf(csrf -> csrf.disable())
-//                .httpBasic(Customizer.withDefaults())
-//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .authorizeHttpRequests(http->{
-//                    http.requestMatchers(HttpMethod.GET, "/auth/hello").permitAll();
-//                    http.requestMatchers(HttpMethod.GET, "/auth/hello-secured").hasAuthority("CREATE");
-//                    http.anyRequest().denyAll();//autenticated
-//                })
-//                .build();
-//    }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
+                .authorizeHttpRequests(http->{
+                    //enlace públicos
+                    http.requestMatchers(HttpMethod.GET, "/auth/get").permitAll();
+                    // endpoins privados
+                    //una forma de poner un solo permiso
+                    //http.requestMatchers(HttpMethod.POST, "/auth/post").hasAuthority("CREATE");
+                    //si se quiere poner más de un permiso
+                    //http.requestMatchers(HttpMethod.POST, "/auth/post").hasAnyAuthority("CREATE", "READ");
+                    //validar por ROle
+                    http.requestMatchers(HttpMethod.POST, "/auth/post").hasRole("ADMIN");
+                    http.requestMatchers(HttpMethod.PATCH, "/auth/patch").hasAuthority("REFACTOR");
+                    http.anyRequest().denyAll();//autenticated
+                })
                 .build();
     }
+
+    //Esto funciona con la configuracion en los controladores
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+//        return httpSecurity
+//                .csrf(csrf -> csrf.disable())
+//                .httpBasic(Customizer.withDefaults())
+//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//
+//                .build();
+//    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception{
@@ -74,9 +84,15 @@ public class SecurityConfig {
 
 
 
+    //con cada ingreso, la contraseña se  encripta y  se compara con la que está guardada en la bd
     @Bean
     public PasswordEncoder passwordEncoder(){
-        return NoOpPasswordEncoder.getInstance();
+
+        return new BCryptPasswordEncoder();
     }
 
+//para encriptar la contraseña, y guardarla en la bd
+//    public static void main(String[] args) {
+//        System.out.println(new BCryptPasswordEncoder().encode("1234"));
+//    }
 }
